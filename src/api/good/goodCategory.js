@@ -6,20 +6,20 @@ import axios from "../../utils/axios";
 // 权限管理
 
 // 获取列表
-export function authPermissionRuleList(query) {
+export function goodCategoryList(query) {
     return axios({
-        url: "/admin/auth/permission_rule/index",
+        url: "/admin/good/category/index",
         method: "get",
         params: query
     });
 }
 
 // 保存
-export function authPermissionRuleSave(data, formName, method = "post") {
+export function goodCategorySave(data, formName, method = "post") {
     let url =
         formName !== "edit"
-            ? "/admin/auth/permission_rule/save"
-            : "/admin/auth/permission_rule/edit";
+            ? "/admin/good/category/save"
+            : "/admin/good/category/edit";
     return axios({
         url: url,
         method: method,
@@ -28,9 +28,9 @@ export function authPermissionRuleSave(data, formName, method = "post") {
 }
 
 // 删除
-export function authPermissionRuleDelete(data) {
+export function goodCategoryDelete(data) {
     return axios({
-        url: "/admin/auth/permission_rule/delete",
+        url: "/admin/good/category/delete",
         method: "post",
         data: data
     });

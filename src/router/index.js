@@ -23,6 +23,9 @@ import upload from "../views/components/upload-demo.vue";
 import adSite from "../views/adManage/adSite.vue";
 import ad from "../views/adManage/ad.vue";
 
+// 商品管理
+import goodCategory from "../views/good/goodCategory.vue";
+
 // Vue.use(VueRouter);
 
 const err401 = r =>
@@ -117,13 +120,6 @@ export const constantRouterMap = [
     }
 ];
 
-export default new VueRouter({
-    // mode: 'history', //后端支持可开
-    mode: ROUTER_MODE,
-    routes: constantRouterMap,
-    strict: process.env.NODE_ENV !== "production"
-});
-
 export const asyncRouterMap = [
     {
         path: "/userManage",
@@ -207,5 +203,34 @@ export const asyncRouterMap = [
                 }
             }
         ]
+    },
+    {
+        path: "/good",
+        redirect: "/good/category",
+        component: Home,
+        icon: "guanggao",
+        name: "商品管理",
+        meta: {
+            authRule: ["good"]
+        },
+        // noDropdown: true,
+        children: [
+            {
+                path: "category",
+                component: goodCategory,
+                name: "商品分类",
+                icon: "",
+                meta: {
+                    authRule: ["admin/good.category/index"]
+                }
+            }
+        ]
     }
 ];
+
+export default new VueRouter({
+    // mode: 'history', //后端支持可开
+    mode: ROUTER_MODE,
+    routes: constantRouterMap,
+    strict: process.env.NODE_ENV !== "production"
+});

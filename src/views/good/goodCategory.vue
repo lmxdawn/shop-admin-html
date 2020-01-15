@@ -1,17 +1,6 @@
 <template>
     <div>
         <el-form :inline="true" :model="query" class="query-form" size="mini">
-            <el-form-item class="query-form-item">
-                <el-input v-model="query.name" placeholder="角色名称"></el-input>
-            </el-form-item>
-            <el-form-item class="query-form-item">
-                <el-select v-model="query.status" placeholder="状态">
-                    <el-option label="全部" value=""></el-option>
-                    <el-option label="禁用" value="0"></el-option>
-                    <el-option label="正常" value="1"></el-option>
-                </el-select>
-            </el-form-item>
-
             <el-form-item>
                 <el-button-group>
                     <el-button type="primary" icon="el-icon-refresh" @click="onReset"></el-button>
@@ -43,29 +32,31 @@
                         <el-option
                             v-for="item in treeList"
                             :key="item.id"
-                            :label="item.title"
+                            :label="item.name"
                             :value="item.id">
-                            <span style="float: left"><span v-html="item.html"></span>{{ item.title }}</span>
+                            <span style="float: left"><span v-html="item.html"></span>{{ item.name }}</span>
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="规则名" prop="name">
+                <el-form-item label="分类名称" prop="name">
                     <el-input type="" v-model="formData.name" auto-complete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="规则标题" prop="title">
-                    <el-input type="" v-model="formData.title" auto-complete="off"></el-input>
+                <el-form-item label="导航显示" prop="is_show">
+                    <el-switch
+                        v-model="formData.is_show"
+                        active-text="否"
+                        inactive-text="是">
+                    </el-switch>
                 </el-form-item>
-                <el-form-item label="状态" prop="status">
-                    <el-radio-group v-model="formData.status">
-                        <el-radio :label="0">禁用</el-radio>
-                        <el-radio :label="1">正常</el-radio>
-                    </el-radio-group>
+                <el-form-item label="推荐" prop="is_recommend">
+                    <el-switch
+                        v-model="formData.is_recommend"
+                        active-text="否"
+                        inactive-text="是">
+                    </el-switch>
                 </el-form-item>
-                <el-form-item label="额外的规则表达式">
-                    <el-input type="textarea" v-model="formData.condition"></el-input>
-                </el-form-item>
-                <el-form-item label="排序" prop="listorder">
-                    <el-input type="" v-model="formData.listorder" auto-complete="off"></el-input>
+                <el-form-item label="排序" prop="sort">
+                    <el-input type="" v-model="formData.sort" auto-complete="off"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -79,31 +70,28 @@
 
 <script>
 import {
-    authPermissionRuleList,
-    authPermissionRuleSave,
-    authPermissionRuleDelete
-} from "../../../api/auth/authPermissionRule";
+    goodCategoryList,
+    goodCategorySave,
+    goodCategoryDelete
+} from "../../api/good/goodCategory";
 const formJson = {
     id: "",
     pid: "2",
     name: "",
-    title: "",
-    status: 1,
-    condition: "",
-    listorder: 999
+    pic: "",
+    is_show: 1,
+    is_recommend: 0,
+    sort: ""
 };
 export default {
     data() {
         return {
-            query: {
-                name: "",
-                status: ""
-            },
+            query: {},
             mergeList: [],
             node: null,
             defaultProps: {
                 children: "children",
-                label: "title"
+                label: "name"
             },
             treeList: [],
             loading: true,
@@ -118,13 +106,11 @@ export default {
             formData: formJson,
             formRules: {
                 name: [
-                    { required: true, message: "请输入规则名", trigger: "blur" }
-                ],
-                title: [
-                    { required: true, message: "请输入标题", trigger: "blur" }
-                ],
-                status: [
-                    { required: true, message: "请选择状态", trigger: "change" }
+                    {
+                        required: true,
+                        message: "请输入分类名称",
+                        trigger: "blur"
+                    }
                 ]
             },
             pidData: {},
@@ -150,10 +136,7 @@ export default {
             this.$router.push({
                 path: ""
             });
-            this.query = {
-                name: "",
-                status: ""
-            };
+            this.query = {};
             this.getList();
         },
         onSubmit() {
@@ -161,7 +144,7 @@ export default {
         },
         getList() {
             this.loading = true;
-            authPermissionRuleList(this.query)
+            goodCategoryList(this.query)
                 .then(response => {
                     this.loading = false;
                     this.mergeList = response.data.list || [];
@@ -208,7 +191,7 @@ export default {
                 if (valid) {
                     this.formLoading = true;
                     let data = Object.assign({}, this.formData);
-                    authPermissionRuleSave(data, this.formName)
+                    goodCategorySave(data, this.formName)
                         .then(response => {
                             this.formLoading = false;
                             if (response.code) {
@@ -266,7 +249,7 @@ export default {
                     .then(() => {
                         this.deleteLoading = true;
                         let para = { id: data.id };
-                        authPermissionRuleDelete(para)
+                        goodCategoryDelete(para)
                             .then(response => {
                                 this.deleteLoading = false;
                                 if (response.code) {
