@@ -28,9 +28,10 @@
             top="5vh">
             <el-form :model="formData" :rules="formRules" ref="dataForm">
                 <el-form-item label="父ID" prop="pid">
-                    <el-select v-model="formData.pid" placeholder="顶级">
+                    <el-select v-model="formData.pid" placeholder="顶级" :disabled="formName === 'edit'">
                         <el-option
                             v-for="item in treeList"
+                            v-if="item.level <= 2"
                             :key="item.id"
                             :label="item.name"
                             :value="item.id">
@@ -41,19 +42,27 @@
                 <el-form-item label="分类名称" prop="name">
                     <el-input type="" v-model="formData.name" auto-complete="off"></el-input>
                 </el-form-item>
+                <el-form-item label="分类图标" prop="pic">
+                    <div class="block" style="width: 100%;display: inline-block;">
+                        <el-image :src="formData.pic_url" style="width: 100px;height: 100px;">
+                            <div slot="error" class="image-slot">
+                                <i class="el-icon-picture-outline"></i>
+                            </div>
+                        </el-image>
+                        <upload ext="png,jpg,jpeg" @on-select="onSelectPic"></upload>
+                    </div>
+                </el-form-item>
                 <el-form-item label="导航显示" prop="is_show">
-                    <el-switch
-                        v-model="formData.is_show"
-                        active-text="否"
-                        inactive-text="是">
-                    </el-switch>
+                    <el-radio-group v-model="formData.is_show">
+                        <el-radio :label="0">否</el-radio>
+                        <el-radio :label="1">是</el-radio>
+                    </el-radio-group>
                 </el-form-item>
                 <el-form-item label="推荐" prop="is_recommend">
-                    <el-switch
-                        v-model="formData.is_recommend"
-                        active-text="否"
-                        inactive-text="是">
-                    </el-switch>
+                    <el-radio-group v-model="formData.is_recommend">
+                        <el-radio :label="0">否</el-radio>
+                        <el-radio :label="1">是</el-radio>
+                    </el-radio-group>
                 </el-form-item>
                 <el-form-item label="排序" prop="sort">
                     <el-input type="" v-model="formData.sort" auto-complete="off"></el-input>
@@ -74,11 +83,13 @@ import {
     goodCategorySave,
     goodCategoryDelete
 } from "../../api/good/goodCategory";
+import Upload from "../../components/File/Upload.vue";
 const formJson = {
     id: "",
     pid: "2",
     name: "",
     pic: "",
+    pic_url: "",
     is_show: 1,
     is_recommend: 0,
     sort: ""
@@ -117,20 +128,36 @@ export default {
             deleteLoading: false
         };
     },
+    components: {
+        Upload
+    },
     methods: {
         /*eslint-disable */
         renderContent (h, { node, data, store }) {
-            return (
-                <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
-                <span>
-                <span title={ data.name }>{node.label}</span>
-            </span>
-            <span>
-            <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleForm(node, data, 'add') }>添加子菜单</el-button>
-            <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleForm(node, data, 'edit') }>编辑</el-button>
-            <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleDel(node, data) }>删除</el-button>
-            </span>
-            </span>)
+            if (data.level <= 2) {
+                return (
+                    <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
+                    <span>
+                    <span title={ data.name }>{node.label}</span>
+                    </span>
+                    <span>
+                <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleForm(node, data, 'add') }>添加子菜单</el-button>
+                <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleForm(node, data, 'edit') }>编辑</el-button>
+                <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleDel(node, data) }>删除</el-button>
+                </span>
+                </span>)
+            } else {
+                return (
+                    <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
+                    <span>
+                    <span title={ data.name }>{node.label}</span>
+                    </span>
+                    <span>
+                <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleForm(node, data, 'edit') }>编辑</el-button>
+                <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleDel(node, data) }>删除</el-button>
+                </span>
+                </span>)
+            }
         },
         onReset() {
             this.$router.push({
@@ -203,6 +230,7 @@ export default {
                             if (this.formName !== "edit") {
                                 if (response.data && response.data.id) {
                                     data.id = response.data.id;
+                                    data.level = response.data.level;
                                     if (this.pidData) {
                                         if (!this.pidData.children) {
                                             this.$set(
@@ -273,6 +301,10 @@ export default {
                         this.$message.info("取消删除");
                     });
             }
+        },
+        onSelectPic(filePath, filePathUrl) {
+            this.formData.pic = filePath;
+            this.formData.pic_url = filePathUrl;
         }
     },
     filters: {
@@ -300,4 +332,14 @@ export default {
 </script>
 
 <style type="text/scss" lang="scss">
+.image-slot {
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: #f5f7fa;
+    color: #909399;
+}
 </style>

@@ -28,7 +28,6 @@ function hasRouterRole(authRules, route) {
     ) {
         return true;
     }
-    console.log(route);
     return authRules.some(
         authRule => route.meta.authRule.indexOf(authRule) >= 0
     );
