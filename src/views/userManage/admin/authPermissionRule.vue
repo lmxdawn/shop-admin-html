@@ -22,6 +22,7 @@
         </el-form>
 
         <el-tree
+            class="permission-rule-tree"
             :data="mergeList"
             :props="defaultProps"
             node-key="id"
@@ -317,4 +318,12 @@ export default {
 </script>
 
 <style type="text/scss" lang="scss">
+.permission-rule-tree {
+    border: 1px solid #EBEEF5;
+    border-bottom: none;
+}
+.el-tree-node__content {
+    height: 40px !important;
+    border-bottom: 1px solid #EBEEF5;
+}
 </style>
