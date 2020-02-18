@@ -70,9 +70,6 @@ export default {
     deactivated() {
         this.destroyTinymce();
     },
-    destroyed() {
-        this.destroyTinymce();
-    },
     methods: {
         initTinymce() {
             const _this = this;
@@ -88,6 +85,12 @@ export default {
                 plugins: plugins,
                 end_container_on_empty_block: true,
                 powerpaste_word_import: "clean",
+                forced_root_block: "",
+                // forced_root_block_attrs: {
+                //   'class': 'myclass',
+                // },
+                content_style: "p {margin: 0; border:0 ; padding: 0}",
+                fontsize_formats: "8px 10px 12px 14px 18px 24px 36px",
                 code_dialog_height: 450,
                 code_dialog_width: 1000,
                 advlist_bullet_styles: "square",
@@ -130,7 +133,7 @@ export default {
                     progress(0);
                     qiuNiuUpToken()
                         .then(response => {
-                            if (response.code > 0) {
+                            if (response.code !== 20000) {
                                 failure("出现未知问题，刷新页面");
                                 return;
                             }
@@ -141,29 +144,35 @@ export default {
                             const domain = response.data.domain;
                             createFile(url, formData)
                                 .then(response => {
-                                    if (response.data.key) {
-                                        let path_url =
-                                            domain + "/" + response.data.key;
+                                    if (response.key || response.data.key) {
+                                        const path_url =
+                                            domain +
+                                            "/" +
+                                            (response.key || response.data.key);
                                         success(path_url);
                                         progress(100);
                                         return;
                                     }
                                     failure("上传出错");
                                 })
-                                .catch(() => {
-                                    failure("上传出错");
+                                .catch(err => {
+                                    failure("上传出错:" + err);
                                 });
                         })
                         .catch(err => {
-                            failure("出现未知问题，刷新页面");
                             console.log(err);
+                            failure("出现未知问题，刷新页面");
                         });
                 }
             });
         },
         destroyTinymce() {
-            if (window.tinymce.get(this.tinymceId)) {
-                window.tinymce.get(this.tinymceId).destroy();
+            const tinymce = window.tinymce.get(this.tinymceId);
+            if (this.fullscreen) {
+                tinymce.execCommand("mceFullScreen");
+            }
+            if (tinymce) {
+                tinymce.destroy();
             }
         },
         setContent(value) {

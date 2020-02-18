@@ -24,6 +24,7 @@ import adSite from "../views/adManage/adSite.vue";
 import ad from "../views/adManage/ad.vue";
 
 // 商品管理
+import good from "../views/good/good.vue";
 import goodCategory from "../views/good/goodCategory.vue";
 
 // Vue.use(VueRouter);
@@ -206,7 +207,7 @@ export const asyncRouterMap = [
     },
     {
         path: "/good",
-        redirect: "/good/category",
+        redirect: "/good/good",
         component: Home,
         icon: "guanggao",
         name: "商品管理",
@@ -215,6 +216,15 @@ export const asyncRouterMap = [
         },
         // noDropdown: true,
         children: [
+            {
+                path: "good",
+                component: good,
+                name: "商品列表",
+                icon: "",
+                meta: {
+                    authRule: ["admin/good.good/index"]
+                }
+            },
             {
                 path: "category",
                 component: goodCategory,
