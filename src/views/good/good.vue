@@ -73,65 +73,85 @@
             top="5vh"
         >
             <el-form :model="formData" :rules="formRules" ref="dataForm">
-                <el-form-item label="状态" prop="status">
-                    <el-radio-group v-model="formData.status">
-                        <el-radio :label="1">上架</el-radio>
-                        <el-radio :label="0">下架</el-radio>
-                    </el-radio-group>
-                </el-form-item>
-                <el-form-item label="分类" prop="category_id">
-                    <el-cascader style="width: 400px;" v-model="formData.category_id" :options="categoryList" size="medium"></el-cascader>
-                </el-form-item>
-                <el-form-item label="名称" prop="good_name">
-                    <el-input v-model="formData.good_name" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="简介" prop="good_remark">
-                    <el-input v-model="formData.good_remark" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="售价" prop="shop_price">
-                    <el-input v-model="formData.shop_price" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="市场价" prop="market_price">
-                    <el-input v-model="formData.market_price" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="成本价" prop="cost_price">
-                    <el-input v-model="formData.cost_price" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="商品重量" prop="weight">
-                    <el-input v-model="formData.weight" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="商品体积（m³为单位）" prop="volume">
-                    <el-input v-model="formData.volume" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="虚拟销售量" prop="virtual_sales_sum">
-                    <el-input v-model="formData.virtual_sales_sum" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="主图" prop="original_img">
-                    <div class="block" style="width: 100%;display: inline-block;">
-                        <el-image :src="formData.original_img_url" :preview-src-list="[formData.original_img_url]" style="width: 100px;height: 100px;">
-                            <div slot="error" class="image-slot">
-                                <i class="el-icon-picture-outline"></i>
+                <el-tabs v-model="tabName">
+                    <el-tab-pane label="通用信息" name="first">
+                        <el-form-item label="状态" prop="status">
+                            <el-radio-group v-model="formData.status">
+                                <el-radio :label="1">上架</el-radio>
+                                <el-radio :label="0">下架</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="分类" prop="category_id">
+                            <el-cascader @change="categoryChange" style="width: 400px;" v-model="formData.category_id" :options="categoryList" size="medium"></el-cascader>
+                        </el-form-item>
+                        <el-form-item label="名称" prop="good_name">
+                            <el-input v-model="formData.good_name" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="简介" prop="good_remark">
+                            <el-input v-model="formData.good_remark" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="售价" prop="shop_price">
+                            <el-input v-model="formData.shop_price" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="市场价" prop="market_price">
+                            <el-input v-model="formData.market_price" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="成本价" prop="cost_price">
+                            <el-input v-model="formData.cost_price" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="商品重量" prop="weight">
+                            <el-input v-model="formData.weight" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="商品体积（m³为单位）" prop="volume">
+                            <el-input v-model="formData.volume" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="虚拟销售量" prop="virtual_sales_sum">
+                            <el-input v-model="formData.virtual_sales_sum" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="主图" prop="original_img">
+                            <div class="block" style="width: 100%;display: inline-block;">
+                                <el-image :src="formData.original_img_url" :preview-src-list="[formData.original_img_url]" style="width: 100px;height: 100px;">
+                                    <div slot="error" class="image-slot">
+                                        <i class="el-icon-picture-outline"></i>
+                                    </div>
+                                </el-image>
+                                <upload ext="png,jpg,jpeg" @on-select="onSelectOriginalImg"></upload>
                             </div>
-                        </el-image>
-                        <upload ext="png,jpg,jpeg" @on-select="onSelectOriginalImg"></upload>
-                    </div>
-                </el-form-item>
-                <el-form-item label="图片列表" prop="imgs">
-                    <div class="block" style="width: 100%;display: inline-block;">
-                        <div v-for="(item, index) in formData.imgs_url" :key="index" style="display: inline-block;position: relative;">
-                            <el-image :src="item" :preview-src-list="formData.imgs_url" style="width: 100px;height: 100px;">
-                                <div slot="error" class="image-slot">
-                                    <i class="el-icon-picture-outline"></i>
+                        </el-form-item>
+                    </el-tab-pane>
+                    <el-tab-pane label="商品信息" name="second">
+                        <el-form-item label="图片列表" prop="imgs">
+                            <div class="block" style="width: 100%;display: inline-block;">
+                                <div v-for="(item, index) in formData.imgs_url" :key="index" style="display: inline-block;position: relative;">
+                                    <el-image :src="item" :preview-src-list="formData.imgs_url" style="width: 100px;height: 100px;">
+                                        <div slot="error" class="image-slot">
+                                            <i class="el-icon-picture-outline"></i>
+                                        </div>
+                                    </el-image>
+                                    <span class="image-delete" @click="onDeleteImgs(index)">×</span>
                                 </div>
-                            </el-image>
-                            <span class="image-delete" @click="onDeleteImgs(index)">×</span>
-                        </div>
-                        <upload ext="png,jpg,jpeg" @on-select="onSelectImgs"></upload>
-                    </div>
-                </el-form-item>
-                <el-form-item label="详情" prop="details" v-if="formVisible">
-                    <tinymce style="display: inline-block;width: 100%;" :height="300" v-model="formData.details"/>
-                </el-form-item>
+                                <upload ext="png,jpg,jpeg" @on-select="onSelectImgs"></upload>
+                            </div>
+                        </el-form-item>
+                        <el-form-item label="详情" prop="details" v-if="formVisible">
+                            <tinymce style="display: inline-block;width: 100%;" :height="300" v-model="formData.details"/>
+                        </el-form-item>
+                    </el-tab-pane>
+                    <el-tab-pane label="商品规格" name="third">商品规格</el-tab-pane>
+                    <el-tab-pane label="商品属性" name="fourth">
+                        <el-form-item v-for="(item, index) in attrList" :key="item.id" :label="item.name">
+                            <el-select v-if="item.type === 1" v-model="formData.attr[index].value">
+                                <el-option
+                                    v-for="(valueItem, valueIndex) in item.value"
+                                    :key="valueIndex"
+                                    :label="valueItem"
+                                    :value="valueItem">
+                                </el-option>
+                            </el-select>
+                            <el-input v-else v-model="formData.attr[index].value" auto-complete="off" />
+                        </el-form-item>
+                    </el-tab-pane>
+                </el-tabs>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="hideForm">取消</el-button>
@@ -146,6 +166,7 @@
 import {
     goodList,
     categoryList,
+    attrList,
     goodSave,
     goodDelete
 } from "../../api/good/good";
@@ -168,7 +189,8 @@ const formJson = {
     store_count: "",
     virtual_sales_sum: "",
     details: "",
-    status: 1
+    status: 1,
+    attr: []
 };
 export default {
     components: {
@@ -193,6 +215,7 @@ export default {
     },
     data() {
         return {
+            tabName: "first",
             query: {
                 category_id: "",
                 page: 1,
@@ -248,7 +271,12 @@ export default {
                 ]
             },
             deleteLoading: false,
-            categoryList: []
+            categoryList: [],
+            attrList: [],
+            attrListQuery: {
+                category_id: ""
+            },
+            attrListLoading: false
         };
     },
     mounted() {},
@@ -263,10 +291,27 @@ export default {
         this.getCategoryList();
     },
     methods: {
+        categoryChange() {
+            this.attrListQuery.category_id = this.formData.category_id;
+            this.getAttrList();
+        },
         getCategoryList() {
             categoryList()
                 .then(response => {
                     this.categoryList = response.data.list || [];
+                })
+                .catch(() => {});
+        },
+        getAttrList() {
+            this.attrListLoading = true;
+            attrList(this.attrListQuery)
+                .then(response => {
+                    this.attrListLoading = false;
+                    const attrList = response.data.list || [];
+                    for (let _ in attrList) {
+                        this.formData.attr.push({ value: "" });
+                    }
+                    this.attrList = attrList;
                 })
                 .catch(() => {});
         },
@@ -291,7 +336,10 @@ export default {
                 page: 1,
                 limit: 20
             };
+            // 加载表格数据
             this.getList();
+            // 加载分类列表
+            this.getCategoryList();
         },
         onSubmit() {
             this.query.page = 1;
@@ -334,9 +382,13 @@ export default {
             this.formVisible = !this.formVisible;
             formJson.imgs = [];
             formJson.imgs_url = [];
+            formJson.attr = [];
             this.formData = JSON.parse(JSON.stringify(formJson));
             // 清空表单
             this.resetForm();
+            setTimeout(() => {
+                this.tabName = "first";
+            }, 300);
             return true;
         },
         // 显示表单
@@ -441,5 +493,8 @@ export default {
     font-size: 18px;
     border-radius: 50%;
     background-color: #9e9e9e;
+}
+.el-cascader-menu__wrap {
+    height: 500px !important;
 }
 </style>

@@ -158,7 +158,7 @@
                         <el-radio :label="1">下拉选项</el-radio>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item label="选项值（换行则表示一个项）" prop="is_recommend" v-if="attrFormData.type === 1">
+                <el-form-item label="选项值（换行则表示一个项）" prop="value" v-if="attrFormData.type === 1">
                     <el-input type="textarea" v-model="attrFormData.value" autosize auto-complete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="排序" prop="sort">

@@ -21,6 +21,15 @@ export function categoryList(query) {
     });
 }
 
+// 属性列表
+export function attrList(query) {
+    return axios({
+        url: "/admin/good/good/attrList",
+        method: "get",
+        params: query
+    });
+}
+
 // 保存
 export function goodSave(data, formName, method = "post") {
     var url =
