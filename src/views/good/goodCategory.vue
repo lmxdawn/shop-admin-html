@@ -202,6 +202,22 @@
                         :show-overflow-tooltip="true">
                 </el-table-column>
                 <el-table-column
+                        label="下拉可选值"
+                        with="300"
+                        :show-overflow-tooltip="true"
+                        prop="value">
+                    <template slot-scope="scope">
+                        <span>{{scope.row.value || '无'}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        label="是否支持新增"
+                        prop="is_add">
+                    <template slot-scope="scope">
+                        <el-tag :disable-transitions="true" :type="scope.row.type === 1 ? 'success' : ''">{{scope.row.type === 1 ? '是' : '否'}}</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column
                         label="权重"
                         prop="sort"
                         with="300">
@@ -231,6 +247,15 @@
             <el-form :model="specFormData" :rules="specFormRules" ref="dataSpecForm">
                 <el-form-item label="规格名称" prop="name">
                     <el-input type="" v-model="specFormData.name" auto-complete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="选项值（换行则表示一个项）" prop="value">
+                    <el-input type="textarea" v-model="specFormData.value" autosize auto-complete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="是否支持新增" prop="is_add">
+                    <el-radio-group v-model="specFormData.is_add">
+                        <el-radio :label="1">是</el-radio>
+                        <el-radio :label="0">否</el-radio>
+                    </el-radio-group>
                 </el-form-item>
                 <el-form-item label="排序" prop="sort">
                     <el-input type="" v-model="specFormData.sort" auto-complete="off"></el-input>
@@ -283,6 +308,8 @@ const attrFormJson = {
 const specFormJson = {
     id: "",
     name: "",
+    value: "",
+    is_add: "",
     sort: ""
 };
 export default {

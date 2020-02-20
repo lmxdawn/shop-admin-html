@@ -69,46 +69,49 @@
             :title="formMap[formName]"
             :visible.sync="formVisible"
             :before-close="hideForm"
+            :close-on-click-modal="false"
             width="85%"
             top="5vh"
         >
-            <el-form :model="formData" :rules="formRules" ref="dataForm">
+            <el-form :model="formData" :rules="formRules" ref="dataForm" label-width="100px" v-loading="readLoading">
                 <el-tabs v-model="tabName">
                     <el-tab-pane label="通用信息" name="first">
-                        <el-form-item label="状态" prop="status">
+                        <el-form-item label="状态：" prop="status">
                             <el-radio-group v-model="formData.status">
                                 <el-radio :label="1">上架</el-radio>
                                 <el-radio :label="0">下架</el-radio>
                             </el-radio-group>
                         </el-form-item>
-                        <el-form-item label="分类" prop="category_id">
+                        <el-form-item label="分类：" prop="category_id">
                             <el-cascader @change="categoryChange" style="width: 400px;" v-model="formData.category_id" :options="categoryList" size="medium"></el-cascader>
                         </el-form-item>
-                        <el-form-item label="名称" prop="good_name">
+                        <el-form-item label="名称：" prop="good_name">
                             <el-input v-model="formData.good_name" auto-complete="off" />
                         </el-form-item>
-                        <el-form-item label="简介" prop="good_remark">
+                        <el-form-item label="简介：" prop="good_remark">
                             <el-input v-model="formData.good_remark" auto-complete="off" />
                         </el-form-item>
-                        <el-form-item label="售价" prop="shop_price">
+                        <el-form-item label="售价：" prop="shop_price">
                             <el-input v-model="formData.shop_price" auto-complete="off" />
                         </el-form-item>
-                        <el-form-item label="市场价" prop="market_price">
+                        <el-form-item label="市场价：" prop="market_price">
                             <el-input v-model="formData.market_price" auto-complete="off" />
                         </el-form-item>
-                        <el-form-item label="成本价" prop="cost_price">
+                        <el-form-item label="成本价：" prop="cost_price">
                             <el-input v-model="formData.cost_price" auto-complete="off" />
                         </el-form-item>
-                        <el-form-item label="商品重量" prop="weight">
+                        <el-form-item label="商品重量：" prop="weight">
                             <el-input v-model="formData.weight" auto-complete="off" />
                         </el-form-item>
-                        <el-form-item label="商品体积（m³为单位）" prop="volume">
+                        <el-form-item label="商品体积：" prop="volume">
                             <el-input v-model="formData.volume" auto-complete="off" />
+                            <span class="text-warning">立方米（m³为单位）</span>
                         </el-form-item>
-                        <el-form-item label="虚拟销售量" prop="virtual_sales_sum">
+                        <el-form-item label="虚拟销量：" prop="virtual_sales_sum">
                             <el-input v-model="formData.virtual_sales_sum" auto-complete="off" />
+                            <span class="text-warning">销售量：虚拟销售量+真实销售量</span>
                         </el-form-item>
-                        <el-form-item label="主图" prop="original_img">
+                        <el-form-item label="主图：" prop="original_img">
                             <div class="block" style="width: 100%;display: inline-block;">
                                 <el-image :src="formData.original_img_url" :preview-src-list="[formData.original_img_url]" style="width: 100px;height: 100px;">
                                     <div slot="error" class="image-slot">
@@ -120,7 +123,7 @@
                         </el-form-item>
                     </el-tab-pane>
                     <el-tab-pane label="商品信息" name="second">
-                        <el-form-item label="图片列表" prop="imgs">
+                        <el-form-item label="图片列表：" prop="imgs">
                             <div class="block" style="width: 100%;display: inline-block;">
                                 <div v-for="(item, index) in formData.imgs_url" :key="index" style="display: inline-block;position: relative;">
                                     <el-image :src="item" :preview-src-list="formData.imgs_url" style="width: 100px;height: 100px;">
@@ -133,13 +136,34 @@
                                 <upload ext="png,jpg,jpeg" @on-select="onSelectImgs"></upload>
                             </div>
                         </el-form-item>
-                        <el-form-item label="详情" prop="details" v-if="formVisible">
-                            <tinymce style="display: inline-block;width: 100%;" :height="300" v-model="formData.details"/>
+                        <el-form-item label="详情：" prop="details" v-if="formVisible">
+                            <tinymce style="display: inline-block;width: 97%;" :height="300" v-model="formData.details"/>
                         </el-form-item>
                     </el-tab-pane>
-                    <el-tab-pane label="商品规格" name="third">商品规格</el-tab-pane>
+                    <el-tab-pane label="商品规格" name="third">
+                        <el-form-item label="商品规格：" prop="details">
+                            <el-card shadow="never">
+                                <div v-for="(item, index) in specList" :key="index">
+                                    <div class="spec-item">{{item.name}}：</div>
+                                    <div class="spec-item" v-if="item.value.length > 0">
+                                        <el-checkbox-group v-model="spec[index].value">
+                                            <el-checkbox v-for="(valueItem, valueIndex) in item.value" :key="valueIndex" :label="valueItem"></el-checkbox>
+                                        </el-checkbox-group>
+                                    </div>
+                                    <div class="spec-item" style="display: flex;" v-if="item.is_add === 1">
+                                        <el-input size="mini" style="width: 150px;" v-model="specValueList[index]" auto-complete="off" />
+                                        <el-button size="mini" type="text" style="margin-left: 5px;" @click="specAdd(index)">新增</el-button>
+                                    </div>
+                                </div>
+                                <el-divider></el-divider>
+                                <div class="spec-item">
+                                    <el-button size="mini" @click="createGoodSpec(index)">生成SKU列表</el-button>
+                                </div>
+                            </el-card>
+                        </el-form-item>
+                    </el-tab-pane>
                     <el-tab-pane label="商品属性" name="fourth">
-                        <el-form-item v-for="(item, index) in attrList" :key="item.id" :label="item.name">
+                        <el-form-item v-for="(item, index) in attrList" :key="item.id" :label="item.name + '：'">
                             <el-select v-if="item.type === 1" v-model="formData.attr[index].value">
                                 <el-option
                                     v-for="(valueItem, valueIndex) in item.value"
@@ -165,13 +189,16 @@
 <script>
 import {
     goodList,
+    goodRead,
     categoryList,
     attrList,
+    specList,
     goodSave,
     goodDelete
 } from "../../api/good/good";
 import Upload from "../../components/File/Upload.vue";
 import Tinymce from "../../components/Tinymce/index.vue";
+import descartes from "../../utils/dikaerji";
 const formJson = {
     good_id: "",
     category_id: "",
@@ -190,7 +217,10 @@ const formJson = {
     virtual_sales_sum: "",
     details: "",
     status: 1,
-    attr: []
+    attr: [],
+    attr_list: {},
+    spec: [],
+    spec_list: {}
 };
 export default {
     components: {
@@ -216,6 +246,10 @@ export default {
     data() {
         return {
             tabName: "first",
+            readQuery: {
+                good_id: ""
+            },
+            readLoading: false,
             query: {
                 category_id: "",
                 page: 1,
@@ -232,7 +266,7 @@ export default {
             },
             formLoading: false,
             formVisible: false,
-            formData: formJson,
+            formData: {},
             formRules: {
                 category_id: [
                     {
@@ -255,6 +289,20 @@ export default {
                         trigger: "blur"
                     }
                 ],
+                market_price: [
+                    {
+                        required: true,
+                        message: "请输入商品市场价",
+                        trigger: "blur"
+                    }
+                ],
+                cost_price: [
+                    {
+                        required: true,
+                        message: "请输入商品成本价",
+                        trigger: "blur"
+                    }
+                ],
                 original_img: [
                     {
                         required: true,
@@ -273,10 +321,12 @@ export default {
             deleteLoading: false,
             categoryList: [],
             attrList: [],
-            attrListQuery: {
-                category_id: ""
-            },
-            attrListLoading: false
+            attrListLoading: false,
+            spec: [],
+            specList: [],
+            specValueList: [],
+            specListLoading: false,
+            goodSpeHeadList: []
         };
     },
     mounted() {},
@@ -291,9 +341,32 @@ export default {
         this.getCategoryList();
     },
     methods: {
+        createGoodSpec() {
+            let newList = [];
+            let spec = this.spec;
+            this.formData.spec = JSON.parse(JSON.stringify(spec));
+            for (let item of spec) {
+                let tempNewList = [];
+                for (let valueItem of item.value) {
+                    let tempItem = {
+                        id: item.id,
+                        name: item.name,
+                        value: valueItem
+                    };
+                    tempNewList.push(tempItem);
+                }
+                if (tempNewList.length > 0) {
+                    newList.push(tempNewList);
+                }
+            }
+            if (newList.length > 0) {
+                let descartesList = descartes(newList);
+                console.log(descartesList);
+            }
+        },
         categoryChange() {
-            this.attrListQuery.category_id = this.formData.category_id;
             this.getAttrList();
+            this.getSpecList();
         },
         getCategoryList() {
             categoryList()
@@ -304,20 +377,78 @@ export default {
         },
         getAttrList() {
             this.attrListLoading = true;
-            attrList(this.attrListQuery)
+            attrList({ category_id: this.formData.category_id })
                 .then(response => {
                     this.attrListLoading = false;
                     const attrList = response.data.list || [];
-                    for (let _ in attrList) {
-                        this.formData.attr.push({ value: "" });
+                    for (let i = 0; i < attrList.length; i++) {
+                        let value =
+                            this.formData.attr_list[attrList[i].id] || "";
+                        this.formData.attr.push({
+                            id: attrList[i].id,
+                            value: value
+                        });
                     }
                     this.attrList = attrList;
                 })
-                .catch(() => {});
+                .catch(e => {
+                    console.log(e);
+                });
+        },
+        getSpecList() {
+            this.specListLoading = true;
+            specList({ category_id: this.formData.category_id })
+                .then(response => {
+                    this.specListLoading = false;
+                    const specList = response.data.list || [];
+                    let tempList = [];
+                    for (let i = 0; i < specList.length; i++) {
+                        let item = specList[i];
+                        let defaultItem = [];
+                        let value =
+                            this.formData.spec_list[item.id] || defaultItem;
+                        this.formData.spec.push({
+                            id: specList[i].id,
+                            name: specList[i].name,
+                            value: value
+                        });
+                        this.spec.push({
+                            id: specList[i].id,
+                            name: specList[i].name,
+                            value: value
+                        });
+                        this.specValueList.push("");
+                        for (let ii in value) {
+                            if (
+                                value[ii] &&
+                                item.value.indexOf(value[ii]) === -1
+                            ) {
+                                item.value.unshift(value[ii]);
+                            }
+                        }
+                        tempList.push(item);
+                    }
+                    this.specList = tempList;
+                })
+                .catch(e => {
+                    console.log(e);
+                });
+        },
+        specAdd(index) {
+            let value = this.specValueList[index];
+            if (value) {
+                if (this.specList[index].value.indexOf(value) !== -1) {
+                    this.$message.warning("规格不能重复");
+                    return;
+                }
+                this.specValueList[index] = "";
+                this.specList[index].value.push(value);
+            }
         },
         onSelectOriginalImg(filePath, filePathUrl) {
             this.formData.original_img_url = filePathUrl;
             this.formData.original_img = filePath;
+            console.log(this.formData.attr);
         },
         onSelectImgs(filePath, filePathUrl) {
             this.formData.imgs_url.push(filePathUrl);
@@ -353,6 +484,23 @@ export default {
             this.query.page = val;
             this.getList();
         },
+        getRead() {
+            this.readLoading = true;
+            goodRead(this.readQuery)
+                .then(response => {
+                    this.readLoading = false;
+                    if (response.code) {
+                        this.$message.error(response.message);
+                        return false;
+                    }
+                    this.formData = JSON.parse(JSON.stringify(response.data));
+                    this.getAttrList();
+                    this.getSpecList();
+                })
+                .catch(() => {
+                    this.readLoading = false;
+                });
+        },
         getList() {
             this.loading = true;
             goodList(this.query)
@@ -378,12 +526,7 @@ export default {
         },
         // 隐藏表单
         hideForm() {
-            // 更改值
-            this.formVisible = !this.formVisible;
-            formJson.imgs = [];
-            formJson.imgs_url = [];
-            formJson.attr = [];
-            this.formData = JSON.parse(JSON.stringify(formJson));
+            this.formVisible = false;
             // 清空表单
             this.resetForm();
             setTimeout(() => {
@@ -393,15 +536,23 @@ export default {
         },
         // 显示表单
         handleForm(index, row) {
-            this.formVisible = true;
+            this.spec = [];
+            this.attrList = [];
+            this.specList = [];
+            this.specValueList = [];
             if (row !== null) {
-                this.formData = Object.assign({}, row);
+                // this.formData = Object.assign({}, row);
+                this.readQuery.good_id = row.good_id;
+                this.getRead();
+            } else {
+                this.formData = JSON.parse(JSON.stringify(formJson));
             }
             this.formName = "add";
             if (index !== null) {
                 this.index = index;
                 this.formName = "edit";
             }
+            this.formVisible = true;
         },
         formSubmit() {
             this.$refs["dataForm"].validate(valid => {
@@ -496,5 +647,9 @@ export default {
 }
 .el-cascader-menu__wrap {
     height: 500px !important;
+}
+.spec-item {
+    font-size: 12px;
+    line-height: 30px;
 }
 </style>
