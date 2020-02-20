@@ -141,26 +141,57 @@
                         </el-form-item>
                     </el-tab-pane>
                     <el-tab-pane label="商品规格" name="third">
-                        <el-form-item label="商品规格：" prop="details">
-                            <el-card shadow="never">
-                                <div v-for="(item, index) in specList" :key="index">
-                                    <div class="spec-item">{{item.name}}：</div>
-                                    <div class="spec-item" v-if="item.value.length > 0">
-                                        <el-checkbox-group v-model="spec[index].value">
-                                            <el-checkbox v-for="(valueItem, valueIndex) in item.value" :key="valueIndex" :label="valueItem"></el-checkbox>
-                                        </el-checkbox-group>
-                                    </div>
-                                    <div class="spec-item" style="display: flex;" v-if="item.is_add === 1">
-                                        <el-input size="mini" style="width: 150px;" v-model="specValueList[index]" auto-complete="off" />
-                                        <el-button size="mini" type="text" style="margin-left: 5px;" @click="specAdd(index)">新增</el-button>
-                                    </div>
+                        <el-card shadow="never" :body-style="{padding: '10px'}">
+                            <div v-for="(item, index) in specList" :key="index">
+                                <div class="spec-item" v-if="item.value.length > 0">
+                                    {{item.name}}：
+                                    <el-checkbox-group v-model="spec[index].value" style="display: inline-block;">
+                                        <el-checkbox v-for="(valueItem, valueIndex) in item.value" :key="valueIndex" :label="valueItem"></el-checkbox>
+                                    </el-checkbox-group>
+                                </div>
+                                <div class="spec-item" style="display: flex;" v-if="item.is_add === 1">
+                                    <el-input size="mini" style="width: 150px;" v-model="specValueList[index]" auto-complete="off" />
+                                    <el-button size="mini" type="text" style="margin-left: 5px;" @click="specAdd(index)">新增</el-button>
                                 </div>
                                 <el-divider></el-divider>
-                                <div class="spec-item">
-                                    <el-button size="mini" @click="createGoodSpec(index)">生成SKU列表</el-button>
-                                </div>
-                            </el-card>
-                        </el-form-item>
+                            </div>
+                            <div class="spec-item">
+                                <el-button size="mini" @click="createGoodSpec(index)">生成SKU列表</el-button>
+                            </div>
+                        </el-card>
+                        <el-card style="margin-top: 10px;" shadow="never" :body-style="{padding: '10px'}">
+                            <el-table
+                                    :data="formData.good_spec_list"
+                                    :span-method="objectSpanMethod"
+                                    style="width: 100%;">
+                                <el-table-column
+                                        v-for="(item, index) in goodSpeHeadList"
+                                        :key="index"
+                                        :label="item.name">
+                                    <template slot-scope="scope">
+                                        {{ scope.row.spec_list[index].value }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="价格">
+                                    <template slot-scope="scope">
+                                        <el-input size="mini" v-model="scope.row.price" auto-complete="off" />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="成本价格">
+                                    <template slot-scope="scope">
+                                        <el-input size="mini" v-model="scope.row.cost_price" auto-complete="off" />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="库存">
+                                    <template slot-scope="scope">
+                                        <el-input size="mini" v-model="scope.row.stock" auto-complete="off" />
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </el-card>
                     </el-tab-pane>
                     <el-tab-pane label="商品属性" name="fourth">
                         <el-form-item v-for="(item, index) in attrList" :key="item.id" :label="item.name + '：'">
@@ -220,7 +251,8 @@ const formJson = {
     attr: [],
     attr_list: {},
     spec: [],
-    spec_list: {}
+    spec_list: {},
+    good_spec_list: []
 };
 export default {
     components: {
@@ -326,7 +358,8 @@ export default {
             specList: [],
             specValueList: [],
             specListLoading: false,
-            goodSpeHeadList: []
+            goodSpeHeadList: [],
+            specSpanMethod: []
         };
     },
     mounted() {},
@@ -341,10 +374,30 @@ export default {
         this.getCategoryList();
     },
     methods: {
+        /*eslint-disable */
+        objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+            for (let index = 0; index < this.specSpanMethod.length; index++) {
+                if (columnIndex === index) {
+                    if (rowIndex % this.specSpanMethod[index] === 0) {
+                        return {
+                            rowspan: this.specSpanMethod[index],
+                            colspan: 1
+                        };
+                    } else {
+                        return {
+                            rowspan: 0,
+                            colspan: 0
+                        };
+                    }
+                }
+            }
+        },
         createGoodSpec() {
             let newList = [];
             let spec = this.spec;
             this.formData.spec = JSON.parse(JSON.stringify(spec));
+            let specCount = 0;
+            let specSpanMethod = [];
             for (let item of spec) {
                 let tempNewList = [];
                 for (let valueItem of item.value) {
@@ -358,10 +411,35 @@ export default {
                 if (tempNewList.length > 0) {
                     newList.push(tempNewList);
                 }
+                this.goodSpeHeadList.push({
+                    id: item.id,
+                    name: item.name
+                });
+                // 合并行
+                for (let index in specSpanMethod) {
+                    specSpanMethod[index] += item.value.length;
+                }
+                specSpanMethod[specCount] = item.value.length;
+                specCount++;
+            }
+            if (specSpanMethod.length > 0) {
+                specSpanMethod.shift();
+                this.specSpanMethod = specSpanMethod;
             }
             if (newList.length > 0) {
-                let descartesList = descartes(newList);
-                console.log(descartesList);
+                const descartesList = descartes(newList);
+                let good_spec_list = [];
+                for (let item of descartesList) {
+                    let tempItem = {
+                        price: "",
+                        cost_price: "",
+                        stock: "",
+                        spec_list: item
+                    };
+                    good_spec_list.push(tempItem);
+                }
+                // console.log(good_spec_list);
+                this.formData.good_spec_list = good_spec_list;
             }
         },
         categoryChange() {
@@ -650,6 +728,9 @@ export default {
 }
 .spec-item {
     font-size: 12px;
-    line-height: 30px;
+    line-height: 25px;
+}
+.el-divider--horizontal {
+    margin: 10px 0 !important;
 }
 </style>

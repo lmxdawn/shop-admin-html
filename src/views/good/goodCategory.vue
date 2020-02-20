@@ -214,7 +214,7 @@
                         label="是否支持新增"
                         prop="is_add">
                     <template slot-scope="scope">
-                        <el-tag :disable-transitions="true" :type="scope.row.type === 1 ? 'success' : ''">{{scope.row.type === 1 ? '是' : '否'}}</el-tag>
+                        <el-tag :disable-transitions="true" :type="scope.row.is_add === 1 ? 'success' : ''">{{scope.row.type === 1 ? '是' : '否'}}</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column
