@@ -74,7 +74,7 @@
             top="5vh"
         >
             <el-form :model="formData" :rules="formRules" ref="dataForm" label-width="100px" v-loading="readLoading">
-                <el-tabs v-model="tabName">
+                <el-tabs v-model="tabName" type="card">
                     <el-tab-pane label="通用信息" name="first">
                         <el-form-item label="状态：" prop="status">
                             <el-radio-group v-model="formData.status">
