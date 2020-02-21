@@ -107,13 +107,17 @@
                             <el-input v-model="formData.volume" auto-complete="off" />
                             <span class="text-warning">立方米（m³为单位）</span>
                         </el-form-item>
+                        <el-form-item label="总库存：" prop="store_count">
+                            <el-input v-model="formData.store_count" auto-complete="off" />
+                            <span class="text-warning">如果商品没有sku，则用总库存</span>
+                        </el-form-item>
                         <el-form-item label="虚拟销量：" prop="virtual_sales_sum">
                             <el-input v-model="formData.virtual_sales_sum" auto-complete="off" />
                             <span class="text-warning">销售量：虚拟销售量+真实销售量</span>
                         </el-form-item>
                         <el-form-item label="主图：" prop="original_img">
                             <div class="block" style="width: 100%;display: inline-block;">
-                                <el-image :src="formData.original_img_url" :preview-src-list="[formData.original_img_url]" style="width: 100px;height: 100px;">
+                                <el-image v-if="formData.original_img_url" :src="formData.original_img_url" :preview-src-list="[formData.original_img_url]" style="width: 100px;height: 100px;">
                                     <div slot="error" class="image-slot">
                                         <i class="el-icon-picture-outline"></i>
                                     </div>
@@ -156,7 +160,7 @@
                                 <el-divider></el-divider>
                             </div>
                             <div class="spec-item">
-                                <el-button size="mini" @click="createGoodSpec(index)">生成SKU列表</el-button>
+                                <el-button size="mini" type="primary" @click="createGoodSpec(index)">重新生成SKU列表</el-button>
                             </div>
                         </el-card>
                         <el-card style="margin-top: 10px;" shadow="never" :body-style="{padding: '10px'}">
@@ -168,7 +172,7 @@
                                         :key="index"
                                         :label="item.name">
                                     <template slot-scope="scope">
-                                        {{ scope.row.spec_list[index].value }}
+                                        {{ scope.row.spec_list[index] }}
                                     </template>
                                 </el-table-column>
                                 <el-table-column
@@ -252,7 +256,8 @@ const formJson = {
     spec: [],
     spec_list: {},
     good_spec_list: [],
-    good_spec_head_list: []
+    good_spec_head_list: [],
+    sku_refresh: false
 };
 export default {
     components: {
@@ -373,44 +378,59 @@ export default {
     },
     methods: {
         createGoodSpec() {
-            let newList = [];
-            let spec = this.spec;
-            this.formData.spec = JSON.parse(JSON.stringify(spec));
-            this.formData.good_spec_head_list = [];
-            // console.log(spec);
-            for (let item of spec) {
-                let tempNewList = [];
-                for (let valueItem of item.value) {
-                    let tempItem = {
-                        id: item.id,
-                        name: item.name,
-                        value: valueItem
-                    };
-                    tempNewList.push(tempItem);
+            this.$confirm(
+                "刷新列表将导致sku信息重新生成，是否要刷新?",
+                "提示",
+                {
+                    type: "warning"
                 }
-                if (tempNewList.length > 0) {
-                    newList.push(tempNewList);
-                    this.formData.good_spec_head_list.push({
-                        id: item.id,
-                        name: item.name
-                    });
-                }
-            }
-            if (newList.length > 0) {
-                const descartesList = descartes(newList);
-                // console.log(descartesList);
-                let good_spec_list = [];
-                for (let item of descartesList) {
-                    let tempItem = {
-                        price: "",
-                        cost_price: "",
-                        stock: "",
-                        spec_list: item
-                    };
-                    good_spec_list.push(tempItem);
-                }
-                this.formData.good_spec_list = good_spec_list;
-            }
+            )
+                .then(() => {
+                    let newList = [];
+                    let spec = this.spec;
+                    this.formData.spec = JSON.parse(JSON.stringify(spec));
+                    this.formData.good_spec_head_list = [];
+                    this.formData.sku_refresh = true;
+                    // console.log(spec);
+                    for (let item of spec) {
+                        let tempNewList = [];
+                        for (let valueItem of item.value) {
+                            let tempItem = {
+                                id: item.id,
+                                name: item.name,
+                                value: valueItem
+                            };
+                            tempNewList.push(tempItem);
+                        }
+                        if (tempNewList.length > 0) {
+                            newList.push(tempNewList);
+                            this.formData.good_spec_head_list.push({
+                                id: item.id,
+                                name: item.name
+                            });
+                        }
+                    }
+                    if (newList.length > 0) {
+                        const descartesList = descartes(newList);
+                        // console.log(descartesList);
+                        let good_spec_list = [];
+                        for (let item of descartesList) {
+                            let specList = [];
+                            for (let specIndex in item) {
+                                specList.push(item[specIndex].value);
+                            }
+                            let tempItem = {
+                                price: "",
+                                cost_price: "",
+                                stock: "",
+                                spec_list: specList
+                            };
+                            good_spec_list.push(tempItem);
+                        }
+                        this.formData.good_spec_list = good_spec_list;
+                    }
+                })
+                .catch(() => {});
         },
         categoryChange() {
             this.getAttrList();
@@ -542,6 +562,7 @@ export default {
                         return false;
                     }
                     this.formData = JSON.parse(JSON.stringify(response.data));
+                    this.formData.sku_refresh = false;
                     this.getAttrList();
                     this.getSpecList();
                 })
@@ -607,7 +628,7 @@ export default {
             this.$refs["dataForm"].validate(valid => {
                 if (valid) {
                     this.formLoading = true;
-                    const data = Object.assign({}, this.formData);
+                    const data = JSON.parse(JSON.stringify(this.formData));
                     goodSave(data, this.formName)
                         .then(response => {
                             this.formLoading = false;
