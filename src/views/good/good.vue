@@ -148,10 +148,10 @@
                                     <el-checkbox-group v-model="spec[index].value" style="display: inline-block;">
                                         <el-checkbox v-for="(valueItem, valueIndex) in item.value" :key="valueIndex" :label="valueItem"></el-checkbox>
                                     </el-checkbox-group>
-                                </div>
-                                <div class="spec-item" style="display: flex;" v-if="item.is_add === 1">
-                                    <el-input size="mini" style="width: 150px;" v-model="specValueList[index]" auto-complete="off" />
-                                    <el-button size="mini" type="text" style="margin-left: 5px;" @click="specAdd(index)">新增</el-button>
+                                    <div class="spec-item" style="display: inline-block;margin-left: 10px;" v-if="item.is_add === 1">
+                                        <el-input size="mini" style="width: 150px;" v-model="specValueList[index]" auto-complete="off" />
+                                        <el-button size="mini" type="text" style="margin-left: 5px;" @click="specAdd(index)">新增</el-button>
+                                    </div>
                                 </div>
                                 <el-divider></el-divider>
                             </div>
@@ -162,10 +162,9 @@
                         <el-card style="margin-top: 10px;" shadow="never" :body-style="{padding: '10px'}">
                             <el-table
                                     :data="formData.good_spec_list"
-                                    :span-method="objectSpanMethod"
                                     style="width: 100%;">
                                 <el-table-column
-                                        v-for="(item, index) in goodSpeHeadList"
+                                        v-for="(item, index) in formData.good_spec_head_list"
                                         :key="index"
                                         :label="item.name">
                                     <template slot-scope="scope">
@@ -252,7 +251,8 @@ const formJson = {
     attr_list: {},
     spec: [],
     spec_list: {},
-    good_spec_list: []
+    good_spec_list: [],
+    good_spec_head_list: []
 };
 export default {
     components: {
@@ -357,9 +357,7 @@ export default {
             spec: [],
             specList: [],
             specValueList: [],
-            specListLoading: false,
-            goodSpeHeadList: [],
-            specSpanMethod: []
+            specListLoading: false
         };
     },
     mounted() {},
@@ -374,30 +372,12 @@ export default {
         this.getCategoryList();
     },
     methods: {
-        /*eslint-disable */
-        objectSpanMethod({ row, column, rowIndex, columnIndex }) {
-            for (let index = 0; index < this.specSpanMethod.length; index++) {
-                if (columnIndex === index) {
-                    if (rowIndex % this.specSpanMethod[index] === 0) {
-                        return {
-                            rowspan: this.specSpanMethod[index],
-                            colspan: 1
-                        };
-                    } else {
-                        return {
-                            rowspan: 0,
-                            colspan: 0
-                        };
-                    }
-                }
-            }
-        },
         createGoodSpec() {
             let newList = [];
             let spec = this.spec;
             this.formData.spec = JSON.parse(JSON.stringify(spec));
-            let specCount = 0;
-            let specSpanMethod = [];
+            this.formData.good_spec_head_list = [];
+            // console.log(spec);
             for (let item of spec) {
                 let tempNewList = [];
                 for (let valueItem of item.value) {
@@ -410,24 +390,15 @@ export default {
                 }
                 if (tempNewList.length > 0) {
                     newList.push(tempNewList);
+                    this.formData.good_spec_head_list.push({
+                        id: item.id,
+                        name: item.name
+                    });
                 }
-                this.goodSpeHeadList.push({
-                    id: item.id,
-                    name: item.name
-                });
-                // 合并行
-                for (let index in specSpanMethod) {
-                    specSpanMethod[index] += item.value.length;
-                }
-                specSpanMethod[specCount] = item.value.length;
-                specCount++;
-            }
-            if (specSpanMethod.length > 0) {
-                specSpanMethod.shift();
-                this.specSpanMethod = specSpanMethod;
             }
             if (newList.length > 0) {
                 const descartesList = descartes(newList);
+                // console.log(descartesList);
                 let good_spec_list = [];
                 for (let item of descartesList) {
                     let tempItem = {
@@ -438,7 +409,6 @@ export default {
                     };
                     good_spec_list.push(tempItem);
                 }
-                // console.log(good_spec_list);
                 this.formData.good_spec_list = good_spec_list;
             }
         },
@@ -618,6 +588,7 @@ export default {
             this.attrList = [];
             this.specList = [];
             this.specValueList = [];
+            this.goodSpeHeadList = [];
             if (row !== null) {
                 // this.formData = Object.assign({}, row);
                 this.readQuery.good_id = row.good_id;
