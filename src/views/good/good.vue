@@ -2,7 +2,7 @@
 
     <div class="app-container">
         <el-form :inline="true" :model="query" class="query-form" size="mini">
-            <el-form-item label="分类" prop="category_id">
+            <el-form-item class="query-form-item" label="分类" prop="category_id">
                 <el-cascader style="width: 300px;" v-model="query.category_id" :options="categoryList" :props="{ checkStrictly: true }" size="mini"></el-cascader>
             </el-form-item>
             <el-form-item>

@@ -2,12 +2,24 @@
 
     <div>
         <el-form :inline="true" :model="query" class="query-form" size="mini">
-            <el-form-item class="query-form-item">
+            <el-form-item class="query-form-item" label="广告标题">
                 <el-input v-model="query.title" placeholder="广告标题"></el-input>
+            </el-form-item>
+            <el-form-item class="query-form-item" label="广告位" prop="site_id">
+                <el-select v-model="query.site_id" placeholder="全部">
+                    <el-option label="全部" value="">
+                    </el-option>
+                    <el-option
+                        v-for="item in siteList"
+                        :key="item.site_id"
+                        :label="item.site_name"
+                        :value="item.site_id">
+                    </el-option>
+                </el-select>
             </el-form-item>
             <el-form-item>
                 <el-button-group>
-                    <el-button type="primary" icon="el-icon-refresh" @click="getList"></el-button>
+                    <el-button type="primary" icon="el-icon-refresh" @click="onReset"></el-button>
                     <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
                     <el-button type="primary" @click.native="handleForm(null,null)">新增</el-button>
                 </el-button-group>
@@ -19,15 +31,14 @@
             style="width: 100%;">
             <el-table-column
                 label="ID"
-                prop="ad_id"
-                fixed>
+                with="50"
+                prop="ad_id">
             </el-table-column>
             <el-table-column
                 label="标题"
                 prop="title"
                 with="300"
-                :show-overflow-tooltip="true"
-                fixed>
+                :show-overflow-tooltip="true">
             </el-table-column>
             <el-table-column
                 label="描述"
@@ -37,12 +48,19 @@
             </el-table-column>
             <el-table-column
                 label="封面"
+                with="300"
                 prop="pic_url">
                 <template slot-scope="scope">
-                    <img style="max-width: 200px;max-height: 150px;" :src="scope.row.pic_url"/>
+                    <el-image
+                        fit="scale-down"
+                        style="width: 150px; height: 100px"
+                        :src="scope.row.pic_url"
+                        :preview-src-list="[scope.row.pic_url]">
+                    </el-image>
                 </template>
             </el-table-column>
             <el-table-column
+                with="50"
                 label="状态">
                 <template slot-scope="scope">
                     <el-tag :type="scope.row.status | statusFilterType">{{scope.row.status | statusFilterName}}</el-tag>
@@ -50,6 +68,7 @@
             </el-table-column>
             <el-table-column
                 label="操作"
+                with="20"
                 fixed="right">
                 <template slot-scope="scope">
                     <el-button type="text" size="small" @click.native="handleForm(scope.$index, scope.row)">编辑</el-button>
@@ -96,10 +115,12 @@
                         <el-radio :label="0">web 网页</el-radio>
                         <el-radio :label="1">APP内跳转</el-radio>
                         <el-radio :label="2">小程序跳转</el-radio>
+                        <el-radio :label="3">uniapp内部链接</el-radio>
+                        <el-radio :label="4">uniapptabBar链接</el-radio>
                     </el-radio-group>
                 </el-form-item>
 
-                <el-form-item label="URL链接（web网页和小程序时）" prop="jump_url" v-if="formData.jump_type === 0 || formData.jump_type === 2">
+                <el-form-item label="URL链接（web网页和小程序时）" prop="jump_url" v-if="formData.jump_type === 0 || formData.jump_type === 2 || formData.jump_type === 3 || formData.jump_type === 4">
                     <el-input v-model="formData.jump_url" auto-complete="off"></el-input>
                 </el-form-item>
 
@@ -344,6 +365,7 @@ export default {
     data() {
         return {
             query: {
+                site_id: "",
                 title: "",
                 page: 1,
                 limit: 20
@@ -438,7 +460,8 @@ export default {
                     { required: true, message: "请选择状态", trigger: "change" }
                 ]
             },
-            deleteLoading: false
+            deleteLoading: false,
+            siteList: []
         };
     },
     components: {
@@ -450,6 +473,7 @@ export default {
                 path: ""
             });
             this.query = {
+                site_id: "",
                 title: "",
                 page: 1,
                 limit: 20
@@ -478,6 +502,12 @@ export default {
                     this.loading = false;
                     this.list = response.data.list || [];
                     this.total = response.data.total || 0;
+                    if (
+                        response.data.site_lists &&
+                        response.data.site_lists.length > 0
+                    ) {
+                        this.siteList = response.data.site_lists || [];
+                    }
                 })
                 .catch(() => {
                     this.loading = false;
@@ -575,8 +605,9 @@ export default {
         },
         // 隐藏表单
         hideForm() {
-            // 更改值
-            this.formVisible = !this.formVisible;
+            this.formVisible = false;
+            // 清空表单
+            this.resetForm();
             return true;
         },
         // 显示表单
@@ -615,6 +646,7 @@ export default {
                             } else {
                                 this.list.splice(this.index, 1, data);
                             }
+                            this.hideForm();
                         })
                         .catch(() => {
                             this.formLoading = false;

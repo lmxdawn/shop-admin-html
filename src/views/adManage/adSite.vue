@@ -28,6 +28,10 @@
                 fixed>
             </el-table-column>
             <el-table-column
+                label="广告位索引"
+                prop="site_key">
+            </el-table-column>
+            <el-table-column
                 label="广告位描述"
                 prop="describe"
                 with="300"
@@ -68,6 +72,9 @@
             <el-form :model="formData" :rules="formRules" ref="dataForm">
                 <el-form-item label="广告位名称" prop="site_name">
                     <el-input v-model="formData.site_name" auto-complete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="广告位索引" prop="site_key">
+                    <el-input v-model="formData.site_key" auto-complete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="包含广告（拖动更改排序）" prop="describe">
                     <span style="color: red;">注意：广告列表中红色背景为已禁用</span>
@@ -130,6 +137,7 @@ import draggable from "vuedraggable";
 const formJson = {
     site_id: "",
     site_name: "",
+    site_key: "",
     describe: "",
     ads: []
 };
@@ -163,6 +171,13 @@ export default {
                     {
                         required: true,
                         message: "请输入广告位名称",
+                        trigger: "blur"
+                    }
+                ],
+                site_key: [
+                    {
+                        required: true,
+                        message: "请输入广告位索引",
                         trigger: "blur"
                     }
                 ]
