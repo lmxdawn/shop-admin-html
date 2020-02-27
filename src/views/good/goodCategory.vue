@@ -415,7 +415,7 @@ export default {
                 return (
                     <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
                     <span>
-                    <span title={ data.name }>{node.label}</span>
+                    <span>{ data.id }-{ data.name }</span>
                     </span>
                     <span>
                 <el-button style="font-size: 12px;" type="text" on-click={ () => this.handleForm(node, data, 'add') }>添加子菜单</el-button>
@@ -427,7 +427,7 @@ export default {
                 return (
                     <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
                     <span>
-                    <span title={ data.name }>{node.label}</span>
+                    <span>{ data.id }-{ data.name }</span>
                     </span>
                     <span>
                 <el-button style="font-size: 12px;color:#E6A23C;" type="text" on-click={ () => this.handleSpec(data) }>规格</el-button>

@@ -26,6 +26,8 @@ import ad from "../views/adManage/ad.vue";
 // 商品管理
 import good from "../views/good/good.vue";
 import goodCategory from "../views/good/goodCategory.vue";
+// 订单管理
+import order from "../views/order/list.vue";
 
 // Vue.use(VueRouter);
 
@@ -232,6 +234,28 @@ export const asyncRouterMap = [
                 icon: "",
                 meta: {
                     authRule: ["admin/good.category/index"]
+                }
+            }
+        ]
+    },
+    {
+        path: "/order",
+        redirect: "/order/list",
+        component: Home,
+        icon: "guanggao",
+        name: "订单",
+        meta: {
+            authRule: ["order"]
+        },
+        // noDropdown: true,
+        children: [
+            {
+                path: "list",
+                component: order,
+                name: "订单列表",
+                icon: "",
+                meta: {
+                    authRule: ["admin/order.order/index"]
                 }
             }
         ]

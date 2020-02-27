@@ -67,3 +67,39 @@ export function goodDelete(data) {
         data: data
     });
 }
+
+// 更新状态
+export function goodStatus(data) {
+    return axios({
+        url: "/admin/good/good/status",
+        method: "post",
+        data: data
+    });
+}
+
+// 更新新品状态
+export function goodIsNew(data) {
+    return axios({
+        url: "/admin/good/good/is_new",
+        method: "post",
+        data: data
+    });
+}
+
+// 更新推荐
+export function goodIsRecommend(data) {
+    return axios({
+        url: "/admin/good/good/is_recommend",
+        method: "post",
+        data: data
+    });
+}
+
+// 更新热卖
+export function goodIsHot(data) {
+    return axios({
+        url: "/admin/good/good/is_hot",
+        method: "post",
+        data: data
+    });
+}

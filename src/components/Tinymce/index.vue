@@ -41,6 +41,10 @@ export default {
             type: Number,
             required: false,
             default: 360
+        },
+        isMobile: {
+            type: Boolean,
+            default: false
         }
     },
     data() {
@@ -89,7 +93,7 @@ export default {
                 // forced_root_block_attrs: {
                 //   'class': 'myclass',
                 // },
-                content_style: "p {margin: 0; border:0 ; padding: 0}",
+                content_style: "p {margin: 0; border:0 ; padding: 0} img {with: 100%;}",
                 fontsize_formats: "8px 10px 12px 14px 18px 24px 36px",
                 code_dialog_height: 450,
                 code_dialog_width: 1000,
@@ -133,7 +137,7 @@ export default {
                     progress(0);
                     qiuNiuUpToken()
                         .then(response => {
-                            if (response.code !== 20000) {
+                            if (response.code !== 0) {
                                 failure("出现未知问题，刷新页面");
                                 return;
                             }
@@ -185,7 +189,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .tinymce-container {
     position: relative;
 }

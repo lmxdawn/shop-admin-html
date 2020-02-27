@@ -20,33 +20,73 @@
         >
             <el-table-column
                 label="ID"
+                width="120"
                 prop="good_id"
             />
-            <el-table-column
-                label="名称"
-                prop="good_name"
-            />
-            <el-table-column
-                label="售价"
-                prop="shop_price"
-            />
-            <el-table-column
-                label="市场价"
-                prop="market_price"
-            />
-            <el-table-column
-                label="成本价"
-                prop="cost_price"
-            />
-            <el-table-column
-                label="状态"
-            >
+            <el-table-column label="商品图片" width="140" align="center">
                 <template slot-scope="scope">
-                    <el-tag :type="scope.row.status | statusFilterType">{{ scope.row.status | statusFilterName }}</el-tag>
+                    <el-image
+                        style="width: 100px; height: 100px"
+                        :src="scope.row.original_img_url"
+                        :preview-src-list="[scope.row.original_img_url,...scope.row.imgs_url]"
+                        fit="contain">
+                    </el-image>
                 </template>
             </el-table-column>
             <el-table-column
+                label="商品名称"
+                prop="good_name"
+                align="center"
+            />
+            <el-table-column
+                label="售价"
+                width="140"
+                prop="shop_price"
+            />
+            <el-table-column
+                label="成本价"
+                width="140"
+                prop="cost_price"
+            />
+            <el-table-column label="标签" width="140" align="center">
+                <template slot-scope="scope">
+                    <p>上架：
+                        <el-switch
+                                @change="handleStatusChange(scope.$index, scope.row)"
+                                :active-value="1"
+                                :inactive-value="0"
+                                v-model="scope.row.status">
+                        </el-switch>
+                    </p>
+                    <p>新品：
+                        <el-switch
+                            @change="handleIsNewChange(scope.$index, scope.row)"
+                            v-model="scope.row.is_new">
+                        </el-switch>
+                    </p>
+                    <p>推荐：
+                        <el-switch
+                            @change="handleIsRecommendChange(scope.$index, scope.row)"
+                            v-model="scope.row.is_recommend">
+                        </el-switch>
+                    </p>
+                    <p>热卖：
+                        <el-switch
+                            @change="handleIsHotChange(scope.$index, scope.row)"
+                            v-model="scope.row.is_hot">
+                        </el-switch>
+                    </p>
+                </template>
+            </el-table-column>
+            <el-table-column label="排序" width="100" align="center">
+                <template slot-scope="scope">{{scope.row.sort}}</template>
+            </el-table-column>
+            <el-table-column label="销量" width="100" align="center">
+                <template slot-scope="scope">{{scope.row.sales_sum}}</template>
+            </el-table-column>
+            <el-table-column
                 label="操作"
+                width="200"
             >
                 <template slot-scope="scope">
                     <el-button type="text" size="small" @click.native="handleForm(scope.$index, scope.row)">编辑
@@ -82,11 +122,14 @@
                                 <el-radio :label="0">下架</el-radio>
                             </el-radio-group>
                         </el-form-item>
-                        <el-form-item label="分类：" prop="category_id">
+                        <el-form-item label="商品分类：" prop="category_id">
                             <el-cascader @change="categoryChange" style="width: 400px;" v-model="formData.category_id" :options="categoryList" size="medium"></el-cascader>
                         </el-form-item>
-                        <el-form-item label="名称：" prop="good_name">
+                        <el-form-item label="商品名称：" prop="good_name">
                             <el-input v-model="formData.good_name" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="权重：" prop="sort">
+                            <el-input v-model="formData.sort" auto-complete="off" />
                         </el-form-item>
                         <el-form-item label="简介：" prop="good_remark">
                             <el-input v-model="formData.good_remark" auto-complete="off" />
@@ -99,6 +142,9 @@
                         </el-form-item>
                         <el-form-item label="成本价：" prop="cost_price">
                             <el-input v-model="formData.cost_price" auto-complete="off" />
+                        </el-form-item>
+                        <el-form-item label="计量单位：" prop="unit">
+                            <el-input v-model="formData.unit" auto-complete="off" />
                         </el-form-item>
                         <el-form-item label="商品重量：" prop="weight">
                             <el-input v-model="formData.weight" auto-complete="off" />
@@ -127,6 +173,51 @@
                         </el-form-item>
                     </el-tab-pane>
                     <el-tab-pane label="商品信息" name="second">
+                        <el-form-item label="商品新品：">
+                            <el-col style="width: 60px;">
+                                <el-form-item prop="is_new">
+                                    <el-switch
+                                        v-model="formData.is_new">
+                                    </el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-col style="width: 80px;" class="line">新品权重：</el-col>
+                            <el-col style="width: 150px;">
+                                <el-form-item prop="new_sort">
+                                    <el-input v-model="formData.new_sort" auto-complete="off" />
+                                </el-form-item>
+                            </el-col>
+                        </el-form-item>
+                        <el-form-item label="商品推荐：">
+                            <el-col style="width: 60px;">
+                                <el-form-item prop="is_recommend">
+                                    <el-switch
+                                        v-model="formData.is_recommend">
+                                    </el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-col style="width: 80px;" class="line">推荐权重：</el-col>
+                            <el-col style="width: 150px;">
+                                <el-form-item prop="recommend_sort">
+                                    <el-input v-model="formData.recommend_sort" auto-complete="off" />
+                                </el-form-item>
+                            </el-col>
+                        </el-form-item>
+                        <el-form-item label="热卖爆款：">
+                            <el-col style="width: 60px;">
+                                <el-form-item prop="is_hot">
+                                    <el-switch
+                                        v-model="formData.is_hot">
+                                    </el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-col style="width: 80px;" class="line">热卖权重：</el-col>
+                            <el-col style="width: 150px;">
+                                <el-form-item prop="hot_sort">
+                                    <el-input v-model="formData.hot_sort" auto-complete="off" />
+                                </el-form-item>
+                            </el-col>
+                        </el-form-item>
                         <el-form-item label="图片列表：" prop="imgs">
                             <div class="block" style="width: 100%;display: inline-block;">
                                 <div v-for="(item, index) in formData.imgs_url" :key="index" style="display: inline-block;position: relative;">
@@ -141,7 +232,7 @@
                             </div>
                         </el-form-item>
                         <el-form-item label="详情：" prop="details" v-if="formVisible">
-                            <tinymce style="display: inline-block;width: 97%;" :height="300" v-model="formData.details"/>
+                            <tinymce style="display: inline-block;width: 850px;" :height="300" v-model="formData.details"/>
                         </el-form-item>
                     </el-tab-pane>
                     <el-tab-pane label="商品规格" name="third">
@@ -160,7 +251,7 @@
                                 <el-divider></el-divider>
                             </div>
                             <div class="spec-item">
-                                <el-button size="mini" type="primary" @click="createGoodSpec(index)">重新生成SKU列表</el-button>
+                                <el-button size="mini" type="primary" @click="createGoodSpec()">重新生成SKU列表</el-button>
                             </div>
                         </el-card>
                         <el-card style="margin-top: 10px;" shadow="never" :body-style="{padding: '10px'}">
@@ -228,6 +319,10 @@ import {
     attrList,
     specList,
     goodSave,
+    goodStatus,
+    goodIsNew,
+    goodIsRecommend,
+    goodIsHot,
     goodDelete
 } from "../../api/good/good";
 import Upload from "../../components/File/Upload.vue";
@@ -245,12 +340,20 @@ const formJson = {
     original_img_url: "",
     imgs: [],
     imgs_url: [],
+    unit: "",
     weight: "",
     volume: "",
     store_count: "",
     virtual_sales_sum: "",
     details: "",
     status: 1,
+    is_new: false,
+    new_sort: 0,
+    is_recommend: false,
+    recommend_sort: 0,
+    is_hot: false,
+    hot_sort: 0,
+    sort: 0,
     attr: [],
     attr_list: {},
     spec: [],
@@ -410,6 +513,10 @@ export default {
                             });
                         }
                     }
+                    if (this.formData.good_spec_head_list.length === 0) {
+                        this.formData.good_spec_list = [];
+                        return false;
+                    }
                     if (newList.length > 0) {
                         const descartesList = descartes(newList);
                         // console.log(descartesList);
@@ -526,6 +633,61 @@ export default {
             this.formData.imgs_url.splice(index, 1);
             this.formData.imgs.splice(index, 1);
         },
+        handleStatusChange(index, item) {
+            let status = item.status;
+            const data = { good_id: item.good_id, status: status };
+            goodStatus(data)
+                .then(response => {
+                    if (response.code) {
+                        this.$message.error(response.message);
+                        return false;
+                    }
+                    this.$message.success("修改成功");
+                })
+                .catch(() => {});
+        },
+        handleIsNewChange(index, item) {
+            let is_new = item.is_new;
+            const data = { good_id: item.good_id, is_new: is_new };
+            goodIsNew(data)
+                .then(response => {
+                    if (response.code) {
+                        this.$message.error(response.message);
+                        return false;
+                    }
+                    this.$message.success("修改成功");
+                })
+                .catch(() => {});
+        },
+        handleIsRecommendChange(index, item) {
+            let is_recommend = item.is_recommend;
+            const data = {
+                good_id: item.good_id,
+                is_recommend: is_recommend
+            };
+            goodIsRecommend(data)
+                .then(response => {
+                    if (response.code) {
+                        this.$message.error(response.message);
+                        return false;
+                    }
+                    this.$message.success("修改成功");
+                })
+                .catch(() => {});
+        },
+        handleIsHotChange(index, item) {
+            let is_hot = item.is_hot;
+            const data = { good_id: item.good_id, is_hot: is_hot };
+            goodIsHot(data)
+                .then(response => {
+                    if (response.code) {
+                        this.$message.error(response.message);
+                        return false;
+                    }
+                    this.$message.success("修改成功");
+                })
+                .catch(() => {});
+        },
         onReset() {
             this.$router.push({
                 path: ""
@@ -609,7 +771,6 @@ export default {
             this.attrList = [];
             this.specList = [];
             this.specValueList = [];
-            this.goodSpeHeadList = [];
             if (row !== null) {
                 // this.formData = Object.assign({}, row);
                 this.readQuery.good_id = row.good_id;
